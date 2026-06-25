@@ -77,26 +77,31 @@ app.post('/download', (req, res) => {
   const tempName = `yttrim-${Date.now()}-${crypto.randomBytes(6).toString('hex')}${ext}`;
   const tempPath = path.join(os.tmpdir(), tempName);
 
-  const ytDlpArgs = quality === 'audio'
-    ? [
-        '-x', '--audio-format', 'mp3',
-        '--download-sections', `*${formatTime(startTime)}-${formatTime(endTime)}`,
-        '--force-keyframes-at-cuts',
-        '-o', tempPath,
-        safeUrl
-      ]
-    : [
-        '-f', format,
-        '--download-sections', `*${formatTime(startTime)}-${formatTime(endTime)}`,
-        '--force-keyframes-at-cuts',
-        '-o', tempPath,
-        safeUrl
-      ];
+  const commonArgs = [
+    '--no-warnings',
+    '--socket-timeout', '30',
+    '--retries', '3',
+    '--fragment-retries', '3',
+    '--download-sections', `*${formatTime(startTime)}-${formatTime(endTime)}`,
+    '--force-keyframes-at-cuts',
+    '-o', tempPath
+  ];
 
-  const child = spawn('yt-dlp', ytDlpArgs, { stdio: ['ignore', 'ignore', 'pipe'] });
+  const ytDlpArgs = quality === 'audio'
+    ? ['-x', '--audio-format', 'mp3', ...commonArgs, safeUrl]
+    : ['-f', format, ...commonArgs, safeUrl];
+
+  let stderrData = '';
+  const child = spawn('yt-dlp', ytDlpArgs, { stdio: ['ignore', 'pipe', 'pipe'] });
+
+  child.stdout.on('data', (data) => {
+    console.log('[yt-dlp stdout]', data.toString().trim());
+  });
 
   child.stderr.on('data', (data) => {
-    console.error('[yt-dlp]', data.toString());
+    const message = data.toString();
+    stderrData += message;
+    console.error('[yt-dlp stderr]', message.trim());
   });
 
   const cleanup = () => {
@@ -120,9 +125,15 @@ app.post('/download', (req, res) => {
   child.on('close', (code) => {
     if (code !== 0) {
       console.error(`yt-dlp exited with code ${code}`);
+      console.error(`yt-dlp stderr:\n${stderrData}`);
       cleanup();
       if (!res.headersSent) {
-        return res.status(500).json({ error: 'yt-dlp failed to download the clip.' });
+        const errorMsg = stderrData.includes('HTTP Error 403')
+          ? 'YouTube blocked this download. Try a different video.'
+          : stderrData.includes('Video unavailable')
+          ? 'This video is unavailable or private.'
+          : 'yt-dlp failed to download the clip.';
+        return res.status(500).json({ error: errorMsg, details: stderrData.substring(0, 500) });
       }
       return;
     }
