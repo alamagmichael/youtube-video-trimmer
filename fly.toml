@@ -1,0 +1,24 @@
+# Fly.io deployment configuration
+app = "youtube-video-trimmer"
+primary_region = "sjc"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 3000
+  processes = ["app"]
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+# Optional: Set resource limits
+[resources]
+  cpus = 1
+  memory_mb = 512
