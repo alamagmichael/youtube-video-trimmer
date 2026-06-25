@@ -1,0 +1,12 @@
+{
+  "name": "youtube-video-trimmer",
+  "version": "1.0.0",
+  "description": "Simple YouTube trim app with optional server download support.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
