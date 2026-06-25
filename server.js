@@ -80,8 +80,10 @@ app.post('/download', (req, res) => {
   const commonArgs = [
     '--no-warnings',
     '--socket-timeout', '30',
-    '--retries', '3',
-    '--fragment-retries', '3',
+    '--retries', '10',
+    '--fragment-retries', '10',
+    '--http-chunk-size', '10485760',
+    '--extractor-args', 'youtube:player_client=web,gl=US,hl=en',
     '--download-sections', `*${formatTime(startTime)}-${formatTime(endTime)}`,
     '--force-keyframes-at-cuts',
     '-o', tempPath
