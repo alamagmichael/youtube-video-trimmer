@@ -2,13 +2,16 @@ FROM node:18-slim
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
+    python3-full \
+    pipx \
     ffmpeg \
+    curl \
+    ca-certificates \
+    --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-# Install latest yt-dlp from pip (more up-to-date than apt)
-RUN pip3 install --upgrade yt-dlp
+# Install latest yt-dlp using pipx (safer than pip)
+RUN pipx install --upgrade yt-dlp
 
 WORKDIR /app
 
