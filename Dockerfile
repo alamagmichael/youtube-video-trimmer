@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install latest yt-dlp using pipx (safer than pip)
-RUN pipx install --upgrade yt-dlp
+RUN pipx install yt-dlp && pipx upgrade yt-dlp
 
 WORKDIR /app
 
