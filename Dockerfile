@@ -5,10 +5,13 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     ffmpeg \
+    curl \
+    ca-certificates \
+    --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-# Install latest yt-dlp from pip (more up-to-date than apt)
-RUN pip3 install --upgrade yt-dlp
+# Install latest yt-dlp from pip and update it
+RUN pip3 install --upgrade yt-dlp && yt-dlp -U
 
 WORKDIR /app
 
